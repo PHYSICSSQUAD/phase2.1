@@ -73,6 +73,12 @@ module top;
 	    .debug_halted_o           (dbg_if.debug_halted_o)
 	);
 
+	// 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 BEGIN MULDIV DUT bind 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+	// RV32M internal-signal bind. Added as a separate passive tap; existing
+	// testbench connections and assertions are left unchanged.
+	muld_bind muld_bind_i ();
+	// 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 END MULDIV DUT bind 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
 	// assertions binding
 	bind u_core instruction_sva instr_asrt(instr_if.ASSERT, rst_if.rst_n);
 	bind u_core data_sva data_asrt(data_if.ASSERT, rst_if.rst_n);

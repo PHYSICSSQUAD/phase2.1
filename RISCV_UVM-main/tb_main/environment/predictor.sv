@@ -1,5 +1,8 @@
 `uvm_analysis_imp_decl(_instr)
 `uvm_analysis_imp_decl(_rst)
+// 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 BEGIN MULDIV analysis implementation 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+`uvm_analysis_imp_decl(_muld)
+// 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 END MULDIV analysis implementation 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
 class predictor extends uvm_component;
     `uvm_component_utils(predictor)
@@ -10,6 +13,14 @@ class predictor extends uvm_component;
 
     // Analysis port to scoreboard
     uvm_analysis_port#(data_seq_item) data_ap;
+
+    // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 BEGIN MULDIV predictor fields 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+    // RV32M observations are converted into expected-result transactions here.
+    // The public analysis port can also feed the team's shared scoreboard.
+    uvm_analysis_imp_muld#(muld_seq_item, predictor) muld_imp;
+    uvm_analysis_port#(muld_seq_item)                muld_expected_ap;
+    muld_ref_model                                   muld_rm;
+    // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 END MULDIV predictor fields 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
     shadow_data_memory shadow_data_mem;
 
@@ -30,6 +41,12 @@ class predictor extends uvm_component;
         instr_imp = new("instr_imp", this);
         rst_imp   = new("rst_imp", this);
         data_ap   = new("data_ap", this);
+
+        // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 BEGIN MULDIV predictor build 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        muld_imp         = new("muld_imp", this);
+        muld_expected_ap = new("muld_expected_ap", this);
+        muld_rm          = muld_ref_model::type_id::create("muld_rm");
+        // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 END MULDIV predictor build 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
         shadow_data_mem = new();
     endfunction
@@ -58,6 +75,34 @@ class predictor extends uvm_component;
             in_reset = 1'b0;
         end
     endfunction
+
+    // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 BEGIN MULDIV expected-result prediction 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+    // Called by the passive RV32M agent at operation completion. For this
+    // first integration step the arithmetic reference uses the operands
+    // observed at the multiplier/divider boundary; it does not depend on the
+    // not-yet-integrated shadow register-file model.
+    virtual function void write_muld(muld_seq_item observed);
+        muld_seq_item expected;
+
+        if (observed == null) begin
+            `uvm_error(get_type_name(), "Received a null RV32M transaction")
+            return;
+        end
+
+        if (!$cast(expected, observed.clone())) begin
+            `uvm_error(get_type_name(), "Could not clone RV32M transaction for prediction")
+            return;
+        end
+
+        expected.result   = muld_rm.predict(observed.op, observed.rs1_val, observed.rs2_val);
+        expected.wb_we    = 1'b1;
+        expected.wb_waddr = {1'b0, observed.rd};
+
+        `uvm_info("PRED_MULD",
+            $sformatf("Expected RV32M result: %s", expected.convert2string()), UVM_HIGH)
+        muld_expected_ap.write(expected);
+    endfunction : write_muld
+    // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 END MULDIV expected-result prediction 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
     // Instruction handler
     virtual function void write_instr(instruction_seq_item item);
