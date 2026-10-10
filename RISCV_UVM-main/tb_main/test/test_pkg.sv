@@ -4,12 +4,18 @@
 `include "data_pkg.sv"
 `include "reset_pkg.sv"
 `include "debug_pkg.sv"
+// 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 BEGIN MULDIV agent package 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+`include "muld_pkg.sv"
+// 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 END MULDIV agent package 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 `include "env_pkg.sv"
 
 package test_pkg;
 	import uvm_pkg::*;
 	import shared_pkg::*;
 	import env_pkg::*;
+	// 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 MULDIV agent symbols 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+	import muld_pkg::*;
+	// 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 end MULDIV agent symbols 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 	import base_pkg::*;
 	import instruction_pkg::*;
 	import data_pkg::*;
